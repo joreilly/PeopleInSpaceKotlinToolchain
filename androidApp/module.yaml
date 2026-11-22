@@ -1,0 +1,11 @@
+product: android/app
+
+dependencies:
+  - //shared
+  - $libs.androidx.activity.compose
+
+settings:
+  compose: enabled
+  android:
+    applicationId: dev.johnoreilly.peopleinspace
+    namespace: dev.johnoreilly.peopleinspace

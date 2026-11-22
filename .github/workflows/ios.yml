@@ -1,0 +1,54 @@
+name: iOS
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+# Cancel superseded runs for the same PR/branch
+concurrency:
+  group: ios-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      # Kotlin Toolchain's shared cache (CLI, JDK, Maven dependencies, Kotlin/Native toolchain and
+      # platform-lib caches). Restore on every run, but only save from main to stay within the cache quota.
+      - name: Restore Kotlin Toolchain cache
+        id: kotlin-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/Library/Caches/JetBrains/Kotlin
+          key: ${{ runner.os }}-kotlin-toolchain-${{ hashFiles('kotlin', 'libs.versions.toml', '**/module.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-kotlin-toolchain-
+
+      - name: Run shared tests on iOS simulator
+        run: ./kotlin test -m shared -p iosSimulatorArm64
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ios-test-results
+          path: build/logs/
+
+      # Builds the Kotlin framework and runs xcodebuild on iosApp/module.xcodeproj (unsigned)
+      - name: Build iOS app (simulator)
+        run: ./kotlin build -m iosApp -p iosSimulatorArm64
+
+      - name: Save Kotlin Toolchain cache
+        if: github.ref == 'refs/heads/main' && steps.kotlin-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ~/Library/Caches/JetBrains/Kotlin
+          key: ${{ steps.kotlin-cache.outputs.cache-primary-key }}

@@ -1,0 +1,9 @@
+modules:
+  - androidApp
+  - desktopApp
+  - iosApp
+  - plugins/sqldelight
+  - shared
+
+plugins:
+  - ./plugins/sqldelight

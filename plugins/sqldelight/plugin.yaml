@@ -1,0 +1,13 @@
+tasks:
+  generate:
+    action: !dev.johnoreilly.sqldelight.generateSqlDelightInterface
+      sourceDir: ${module.rootDir}/sqldelight
+      outputDir: ${taskOutputDir}
+      moduleName: ${module.name}
+      settings: ${pluginSettings}
+
+# Generated into common code, so the database is usable from every platform.
+generated:
+  sources:
+    - language: kotlin
+      directory: ${tasks.generate.action.outputDir}

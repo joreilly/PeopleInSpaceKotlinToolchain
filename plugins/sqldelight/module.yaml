@@ -1,0 +1,13 @@
+product: jvm/amper-plugin
+
+# SQLDelight's compiler, as used by its Gradle plugin's worker: SqlDelightEnvironment (from the
+# gradle-plugin jar), the shaded IntelliJ PSI environment (compiler-env) and the SQLite dialect.
+dependencies:
+  - $libs.sqldelight.gradle.plugin
+  - $libs.sqldelight.compiler.env
+  - $libs.sqldelight.sqlite.dialect
+  - $libs.sql.psi.environment
+
+pluginInfo:
+  id: sqldelight
+  settingsClass: dev.johnoreilly.sqldelight.Settings
