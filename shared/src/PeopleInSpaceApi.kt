@@ -12,7 +12,13 @@ import kotlinx.serialization.json.Json
 data class AstroResult(val message: String, val number: Int, val people: List<Assignment>)
 
 @Serializable
-data class Assignment(val craft: String, val name: String)
+data class Assignment(
+    val craft: String,
+    val name: String,
+    val personImageUrl: String? = "",
+    val personBio: String? = "",
+    val nationality: String = "",
+)
 
 @Serializable
 data class IssPosition(val latitude: Double, val longitude: Double)

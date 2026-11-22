@@ -9,7 +9,7 @@ class PeopleInSpaceApiTest {
         val result = json.decodeFromString<AstroResult>(
             """{"message":"success","number":1,"people":[{"craft":"ISS","name":"Jane Doe","nationality":"Irish"}]}"""
         )
-        assertEquals(listOf(Assignment(craft = "ISS", name = "Jane Doe")), result.people)
+        assertEquals(listOf(Assignment(craft = "ISS", name = "Jane Doe", nationality = "Irish")), result.people)
     }
 
     @Test

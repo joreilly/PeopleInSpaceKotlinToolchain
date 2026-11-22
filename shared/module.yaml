@@ -10,6 +10,13 @@ dependencies:
   - $compose.preview
   - $compose.hotReload.runtimeApi
   - $libs.androidx.lifecycle.viewmodel.compose
+  - $libs.material3.adaptive.layout
+  - $libs.material3.adaptive.navigation
+  - $libs.material3.adaptive.navigation.suite
+  - $libs.material.icons.core
+  - $libs.navigationevent.compose
+  - $libs.coil.compose
+  - $libs.coil.network.ktor
   - $libs.ktor.client.core
   - $libs.ktor.client.content.negotiation
   - $libs.ktor.serialization.kotlinx.json
@@ -24,6 +31,8 @@ dependencies@android:
   - $libs.ktor.client.okhttp
   - $libs.koin.android: exported
   - $libs.sqldelight.android.driver
+  - $libs.osmdroid.android
+  - $libs.osm.android.compose
 
 dependencies@jvm:
   - $libs.ktor.client.okhttp

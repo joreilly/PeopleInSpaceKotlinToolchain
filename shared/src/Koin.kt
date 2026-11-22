@@ -17,7 +17,8 @@ val commonModule = module {
     single { PeopleInSpaceApi() }
     single { PeopleInSpaceDatabase(get<SqlDriver>()) }
     single { PeopleInSpaceRepository(get(), get()) }
-    viewModelOf(::PeopleInSpaceViewModel)
+    viewModelOf(::PersonListViewModel)
+    viewModelOf(::ISSPositionViewModel)
 }
 
 /** Provides the platform's [SqlDriver]. */
