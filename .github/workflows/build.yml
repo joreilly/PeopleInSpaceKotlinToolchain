@@ -1,0 +1,55 @@
+name: Build
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+# Cancel superseded runs for the same PR/branch
+concurrency:
+  group: build-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      # Kotlin Toolchain's shared cache: the CLI itself, its JDK, Maven dependencies and Kotlin/Native.
+      # No setup-java or setup-gradle: the ./kotlin wrapper provisions everything.
+      # Restore on every run, but only save from main so PR runs don't fill the repo's cache quota.
+      - name: Restore Kotlin Toolchain cache
+        id: kotlin-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.cache/JetBrains/Kotlin
+          key: ${{ runner.os }}-kotlin-toolchain-${{ hashFiles('kotlin', 'libs.versions.toml', '**/module.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-kotlin-toolchain-
+
+      - name: Build shared, Android, desktop and the SQLDelight plugin
+        run: ./kotlin build -m shared -m androidApp -m desktopApp -m sqldelight
+
+      - name: Run shared tests (JVM and Android)
+        run: ./kotlin test -m shared -p jvm -p android
+
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results
+          path: |
+            build/tasks/_shared_test*/
+            build/logs/
+
+      - name: Save Kotlin Toolchain cache
+        if: github.ref == 'refs/heads/main' && steps.kotlin-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ~/.cache/JetBrains/Kotlin
+          key: ${{ steps.kotlin-cache.outputs.cache-primary-key }}
