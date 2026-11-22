@@ -115,6 +115,6 @@ private fun Double.round(decimals: Int): Double {
     return round(this * multiplier) / multiplier
 }
 
-/** OpenStreetMap on Android, MapKit on iOS; nothing on desktop (as in the original sample). */
+/** OpenStreetMap on Android (osmdroid) and desktop (tiles drawn on a Canvas), MapKit on iOS. */
 @Composable
 internal expect fun ISSMapView(modifier: Modifier, position: IssPosition)
