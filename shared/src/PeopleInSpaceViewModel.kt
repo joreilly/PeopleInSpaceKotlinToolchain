@@ -16,19 +16,21 @@ data class UiState(
     val error: String? = null,
 )
 
-class PeopleInSpaceViewModel(private val api: PeopleInSpaceApi = PeopleInSpaceApi()) : ViewModel() {
+class PeopleInSpaceViewModel(private val repository: PeopleInSpaceRepository) : ViewModel() {
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
-            runCatchingNonCancel { api.fetchPeople() }
-                .onSuccess { result -> _uiState.update { it.copy(people = result.people) } }
+            repository.people.collect { people -> _uiState.update { it.copy(people = people) } }
+        }
+        viewModelScope.launch {
+            runCatchingNonCancel { repository.refreshPeople() }
                 .onFailure { e -> _uiState.update { it.copy(error = e.message) } }
         }
         viewModelScope.launch {
             while (true) {
-                runCatchingNonCancel { api.fetchIssPosition() }
+                runCatchingNonCancel { repository.fetchIssPosition() }
                     .onSuccess { position -> _uiState.update { it.copy(issPosition = position) } }
                 delay(10_000)
             }

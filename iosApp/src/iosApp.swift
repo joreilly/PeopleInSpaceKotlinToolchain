@@ -16,6 +16,10 @@ struct ContentView: View {
 
 @main
 struct iosApp: App {
+    init() {
+        ViewControllerKt.startKoin()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()

@@ -15,13 +15,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import org.jetbrains.compose.reload.DevelopmentEntryPoint
+import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @DevelopmentEntryPoint
-fun App(viewModel: PeopleInSpaceViewModel = viewModel { PeopleInSpaceViewModel() }) {
+fun App(viewModel: PeopleInSpaceViewModel = koinViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     MaterialTheme {
         Scaffold(topBar = { TopAppBar(title = { Text("People In Space") }) }) { padding ->

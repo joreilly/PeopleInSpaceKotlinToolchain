@@ -2,11 +2,28 @@
 
 A minimal version of [PeopleInSpace](https://github.com/joreilly/PeopleInSpace) built with the
 [Kotlin Toolchain](https://kotlin-toolchain.org/latest/) instead of Gradle. It shows who is in space right now and the
-current position of the ISS, using Compose Multiplatform on Android, iOS and Desktop, with Ktor and
-kotlinx.serialization in the shared module.
+current position of the ISS, using Compose Multiplatform on Android, iOS and Desktop, with Ktor,
+kotlinx.serialization, Koin and SQLDelight in the shared module.
 
 The whole build is a few `module.yaml` files (`shared`, `androidApp`, `iosApp`, `desktopApp`), a `project.yaml` and a
 `libs.versions.toml`. There's no `build.gradle.kts`, `settings.gradle.kts` or Gradle wrapper.
+
+### SQLDelight via a local plugin
+
+The Kotlin Toolchain can't use Gradle plugins, so [plugins/sqldelight](./plugins/sqldelight) is a small local plugin
+that does what SQLDelight's Gradle plugin does: it runs the SQLDelight compiler (`SqlDelightEnvironment`) on
+`shared/sqldelight/**/*.sq` and adds the generated Kotlin to `shared`'s common sources. `shared/module.yaml` enables it:
+
+```yaml
+plugins:
+  sqldelight:
+    enabled: true
+    packageName: dev.johnoreilly.peopleinspace.db
+    className: PeopleInSpaceDatabase
+```
+
+On iOS the Gradle plugin would also link SQLite automatically; here `-lsqlite3` is added to `OTHER_LDFLAGS` in
+`iosApp/module.xcodeproj`.
 
 - [/androidApp](./androidApp) contains the Android application.
 - [/desktopApp](./desktopApp) contains the desktop (JVM) application.
