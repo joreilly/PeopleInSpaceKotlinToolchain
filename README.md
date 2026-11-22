@@ -1,7 +1,12 @@
-# Kotlin Multiplatform project
+# PeopleInSpace (Kotlin Toolchain)
 
-This project is targeting Android, iOS, Desktop (fast UI development with Compose Hot Reload), built with
-the [Kotlin Toolchain](https://kotlin-toolchain.org/latest/).
+A minimal version of [PeopleInSpace](https://github.com/joreilly/PeopleInSpace) built with the
+[Kotlin Toolchain](https://kotlin-toolchain.org/latest/) instead of Gradle. It shows who is in space right now and the
+current position of the ISS, using Compose Multiplatform on Android, iOS and Desktop, with Ktor and
+kotlinx.serialization in the shared module.
+
+The whole build is a few `module.yaml` files (`shared`, `androidApp`, `iosApp`, `desktopApp`), a `project.yaml` and a
+`libs.versions.toml`. There's no `build.gradle.kts`, `settings.gradle.kts` or Gradle wrapper.
 
 - [/androidApp](./androidApp) contains the Android application.
 - [/desktopApp](./desktopApp) contains the desktop (JVM) application.
