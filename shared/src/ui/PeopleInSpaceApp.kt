@@ -40,7 +40,8 @@ fun PeopleInSpaceApp() {
     // System back (Android back, iOS edge swipe) closes the detail pane
     NavigationBackHandler(
         state = rememberNavigationEventState(NavigationEventInfo.None),
-        isBackEnabled = navigator.canNavigateBack(),
+        // Only while the list/detail scaffold is on screen, so back isn't swallowed on the ISS tab
+        isBackEnabled = currentDestination == AppDestinations.PERSON_LIST && navigator.canNavigateBack(),
         onBackCompleted = { scope.launch { navigator.navigateBack() } },
     )
 

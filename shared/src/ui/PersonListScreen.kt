@@ -16,8 +16,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -31,10 +33,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,8 +47,6 @@ import coil3.compose.AsyncImage
 import dev.johnoreilly.peopleinspace.Assignment
 import dev.johnoreilly.peopleinspace.PersonListUiState
 import dev.johnoreilly.peopleinspace.PersonListViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 
 const val PersonListTag = "PersonList"
@@ -59,26 +55,18 @@ const val PersonListTag = "PersonList"
 fun PersonListRoute(navigateToPerson: (Assignment) -> Unit) {
     val viewModel: PersonListViewModel = koinViewModel()
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    PersonListScreen(uiState, navigateToPerson, onRefresh = { viewModel.refresh() })
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
+    PersonListScreen(uiState, isRefreshing, navigateToPerson, onRefresh = { viewModel.refresh() })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PersonListScreen(
     uiState: PersonListUiState,
+    isRefreshing: Boolean,
     navigateToPerson: (Assignment) -> Unit,
     onRefresh: () -> Unit,
 ) {
-    val refreshScope = rememberCoroutineScope()
-    var refreshing by remember { mutableStateOf(false) }
-
-    fun refresh() = refreshScope.launch {
-        refreshing = true
-        delay(500)
-        onRefresh()
-        refreshing = false
-    }
-
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -96,6 +84,8 @@ fun PersonListScreen(
                 title = "Error loading astronauts",
                 message = uiState.message,
                 tint = MaterialTheme.colorScheme.error,
+                onRetry = onRefresh,
+                isRetrying = isRefreshing,
             )
 
             is PersonListUiState.Loading -> Box(
@@ -106,24 +96,42 @@ fun PersonListScreen(
             }
 
             is PersonListUiState.Success -> PullToRefreshBox(
-                isRefreshing = refreshing,
-                onRefresh = { refresh() },
+                isRefreshing = isRefreshing,
+                onRefresh = onRefresh,
                 modifier = Modifier.padding(innerPadding),
             ) {
-                if (uiState.result.isEmpty()) {
-                    CenteredMessage(title = "No astronauts found", tint = MaterialTheme.colorScheme.primary)
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .testTag(PersonListTag)
-                            .consumeWindowInsets(innerPadding)
-                            .fillMaxSize()
-                    ) {
-                        if (!refreshing) {
-                            itemsIndexed(uiState.result) { index, person ->
-                                PersonView(index, person, navigateToPerson)
-                            }
+                // A LazyColumn even when empty, so pull-to-refresh still works
+                LazyColumn(
+                    modifier = Modifier
+                        .testTag(PersonListTag)
+                        .consumeWindowInsets(innerPadding)
+                        .fillMaxSize()
+                ) {
+                    uiState.refreshError?.let { error ->
+                        item {
+                            Text(
+                                text = "Couldn't refresh: $error",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    .background(MaterialTheme.colorScheme.errorContainer, RoundedCornerShape(8.dp))
+                                    .padding(12.dp),
+                            )
                         }
+                    }
+                    if (uiState.result.isEmpty()) {
+                        item {
+                            CenteredMessage(
+                                title = "No astronauts found",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.fillParentMaxSize(),
+                            )
+                        }
+                    }
+                    itemsIndexed(uiState.result) { index, person ->
+                        PersonView(index, person, navigateToPerson)
                     }
                 }
             }
@@ -132,7 +140,14 @@ fun PersonListScreen(
 }
 
 @Composable
-private fun CenteredMessage(title: String, tint: Color, modifier: Modifier = Modifier, message: String? = null) {
+private fun CenteredMessage(
+    title: String,
+    tint: Color,
+    modifier: Modifier = Modifier,
+    message: String? = null,
+    onRetry: (() -> Unit)? = null,
+    isRetrying: Boolean = false,
+) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(16.dp)) {
             Icon(imageVector = Icons.Default.Person, contentDescription = null, modifier = Modifier.size(48.dp), tint = tint)
@@ -145,6 +160,14 @@ private fun CenteredMessage(title: String, tint: Color, modifier: Modifier = Mod
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+            if (onRetry != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                if (isRetrying) {
+                    CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                } else {
+                    Button(onClick = onRetry) { Text("Retry") }
+                }
             }
         }
     }

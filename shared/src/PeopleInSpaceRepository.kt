@@ -20,7 +20,8 @@ class PeopleInSpaceRepository(
             Assignment(craft, name, personImageUrl, personBio, nationality)
         }.asFlow().mapToList(Dispatchers.IO)
 
-    suspend fun refreshPeople() {
+    /** Fetches the crew and replaces the cached list; returns what was fetched. */
+    suspend fun refreshPeople(): List<Assignment> {
         val people = api.fetchPeople().people
         queries.transaction {
             queries.deleteAll()
@@ -28,6 +29,7 @@ class PeopleInSpaceRepository(
                 queries.insertItem(People(it.name, it.craft, it.personImageUrl, it.personBio, it.nationality))
             }
         }
+        return people
     }
 
     suspend fun fetchIssPosition(): IssPosition = api.fetchIssPosition()

@@ -134,7 +134,8 @@ fun PersonImage(imageUrl: String?, name: String) {
             .background(color = MaterialTheme.colorScheme.primaryContainer),
         contentAlignment = Alignment.Center,
     ) {
-        if (imageUrl != null) {
+        // The API sends "" (not null) when there's no photo or bio
+        if (!imageUrl.isNullOrBlank()) {
             AsyncImage(
                 model = imageUrl,
                 contentDescription = name,
@@ -165,7 +166,7 @@ fun PersonBio(bio: String?) {
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(bottom = 8.dp),
             )
-            if (bio != null) {
+            if (!bio.isNullOrBlank()) {
                 Text(text = bio, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
             } else {
                 Text(
